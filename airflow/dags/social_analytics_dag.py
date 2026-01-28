@@ -9,7 +9,6 @@ from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
 from airflow.utils.dates import days_ago
 
-# Default arguments
 default_args = {
     'owner': 'analytics',
     'depends_on_past': False,
@@ -19,7 +18,6 @@ default_args = {
     'retry_delay': timedelta(minutes=5),
 }
 
-# DAG definition
 dag = DAG(
     'social_analytics_pipeline',
     default_args=default_args,
@@ -30,7 +28,6 @@ dag = DAG(
     tags=['social', 'analytics', 'dbt'],
 )
 
-# Paths - adjust these for your environment
 PROJECT_DIR = '/opt/airflow/dags/karaoke-analytics-social'
 DBT_PROJECT_DIR = f'{PROJECT_DIR}/dbt_social_analytics'
 EL_PIPELINE_DIR = f'{PROJECT_DIR}/el_pipeline'
