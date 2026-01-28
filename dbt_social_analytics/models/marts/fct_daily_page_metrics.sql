@@ -5,7 +5,8 @@
             "field": "metric_date",
             "data_type": "date",
             "granularity": "day"
-        }
+        },
+        cluster_by=["metric_date"]
     )
 }}
 
@@ -35,4 +36,3 @@ select
     coalesce(page_post_engagements, 0) + coalesce(page_reactions_like, 0) as total_engagement,
     last_updated
 from pivoted
-order by metric_date desc
