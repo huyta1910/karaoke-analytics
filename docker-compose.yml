@@ -1,0 +1,65 @@
+version: "3.8"
+
+services:
+  airbyte-webapp:
+    image: airbyte/webapp:0.63.9
+    container_name: airbyte-webapp
+    ports:
+      - "8000:80"
+    environment:
+      - AIRBYTE_SERVER_HOST=airbyte-server
+      - AIRBYTE_SERVER_PORT=8001
+    depends_on:
+      - airbyte-server
+    restart: unless-stopped
+
+  airbyte-server:
+    image: airbyte/server:0.63.9
+    container_name: airbyte-server
+    environment:
+      - DATABASE_URL=jdbc:postgresql://airbyte-db:5432/airbyte
+      - DATABASE_USER=airbyte
+      - DATABASE_PASSWORD=airbyte
+      - WORKSPACE_ROOT=/data/workspaces
+      - CONFIG_ROOT=/data/config
+      - INTERNAL_API_HOST=airbyte-server
+      - INTERNAL_API_PORT=8001
+    volumes:
+      - airbyte_workspace:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - airbyte-db
+    restart: unless-stopped
+
+  airbyte-worker:
+    image: airbyte/worker:0.63.9
+    container_name: airbyte-worker
+    environment:
+      - DATABASE_URL=jdbc:postgresql://airbyte-db:5432/airbyte
+      - DATABASE_USER=airbyte
+      - DATABASE_PASSWORD=airbyte
+      - WORKSPACE_ROOT=/data/workspaces
+      - CONFIG_ROOT=/data/config
+      - INTERNAL_API_HOST=airbyte-server
+      - INTERNAL_API_PORT=8001
+    volumes:
+      - airbyte_workspace:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - airbyte-server
+    restart: unless-stopped
+
+  airbyte-db:
+    image: postgres:13
+    container_name: airbyte-db
+    environment:
+      - POSTGRES_USER=airbyte
+      - POSTGRES_PASSWORD=airbyte
+      - POSTGRES_DB=airbyte
+    volumes:
+      - airbyte_db:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  airbyte_workspace:
+  airbyte_db:
