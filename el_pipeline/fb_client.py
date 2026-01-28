@@ -98,9 +98,10 @@ class FacebookClient:
             'ingestion_time': datetime.now() 
         }
 
-    def fetch_posts_data_optimized(self):
+    def fetch_posts_data_optimized(self, since_date=None):
         """
-        Fetches ALL posts using Pagination + Multithreading.
+        Fetches posts using Pagination + Multithreading.
+        If since_date is provided, only fetches posts created after that date.
         """
         all_rows = []
         
@@ -113,7 +114,10 @@ class FacebookClient:
             'access_token': Config.FB_ACCESS_TOKEN
         }
         
-        print("   ...Starting Parallel Full History Extract...")
+        if since_date:
+            print(f"   ...Fetching posts newer than {since_date}...")
+        else:
+            print("   ...Starting Parallel Full History Extract...")
         
         all_posts_metadata = []
         
@@ -130,7 +134,28 @@ class FacebookClient:
                 batch = data.get('data', [])
                 if not batch: break
                 
-                all_posts_metadata.extend(batch)
+                # If since_date is provided, filter to only new posts
+                if since_date:
+                    new_posts = []
+                    reached_old_posts = False
+                    # Make since_date naive for comparison (remove timezone info)
+                    since_date_naive = since_date.replace(tzinfo=None) if hasattr(since_date, 'tzinfo') and since_date.tzinfo else since_date
+                    for post in batch:
+                        post_date = datetime.strptime(post['created_time'][:19], '%Y-%m-%dT%H:%M:%S')
+                        if post_date > since_date_naive:
+                            new_posts.append(post)
+                        else:
+                            reached_old_posts = True
+                            break
+                    
+                    all_posts_metadata.extend(new_posts)
+                    
+                    if reached_old_posts:
+                        print(f"   Reached posts older than {since_date}, stopping pagination...")
+                        break
+                else:
+                    all_posts_metadata.extend(batch)
+                
                 print(f"      -> Collected metadata for {len(all_posts_metadata)} posts...")
 
                 if 'paging' in data and 'next' in data['paging']:

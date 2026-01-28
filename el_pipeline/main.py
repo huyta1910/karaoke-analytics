@@ -44,23 +44,27 @@ def main():
         print("Page Insights are up to date.")
 
 
-
     print("\n--- 2. Processing POST Analytics ---")
-    print("Fetching last 50 posts...")
     
-    print("\n--- 2. Processing POST Analytics (Optimized) ---")
+    # Get the last post date from BigQuery for incremental fetching
+    last_post_date = bq.get_last_post_date()
+    
+    if last_post_date:
+        print(f"Found existing posts up to: {last_post_date}")
+    else:
+        print("No existing posts found. Fetching all posts...")
     
     try:
-        # Use the OPTIMIZED function
-        df_posts = fb.fetch_posts_data_optimized()
+        # Use incremental fetching - only fetch posts newer than last_post_date
+        df_posts = fb.fetch_posts_data_optimized(since_date=last_post_date)
         
         if not df_posts.empty:
             bq.upload_posts_data(df_posts)
         else:
-            print("No posts found.")
+            print("No new posts found.")
 
     except Exception as e:
-        print(f" Post processing failed: {e}")
+        print(f"Post processing failed: {e}")
 
     print("\n--- Pipeline Finished ---")
 

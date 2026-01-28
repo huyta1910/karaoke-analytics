@@ -38,6 +38,25 @@ class BigQueryClient:
         except NotFound:
             return None 
 
+    def get_last_post_date(self):
+        """
+        Get the latest post created_at date from BigQuery.
+        Returns: datetime object or None (if table is empty/doesn't exist).
+        """
+        table_ref = f"{self.dataset_ref}.{Config.BQ_POSTS_TABLE_ID}"
+        query = f"""
+            SELECT MAX(created_at) as last_date 
+            FROM `{table_ref}`
+        """
+        try:
+            query_job = self.client.query(query)
+            results = list(query_job.result())
+            if results and results[0].last_date:
+                return results[0].last_date
+            return None
+        except NotFound:
+            return None
+
     def upload_data(self, df):
         if df is None or df.empty:
             return
@@ -84,7 +103,7 @@ class BigQueryClient:
                 bigquery.SchemaField("ingestion_time", "TIMESTAMP"),
             ],
             create_disposition="CREATE_IF_NEEDED",
-            write_disposition="WRITE_TRUNCATE", 
+            write_disposition="WRITE_APPEND", 
         )
 
         try:
