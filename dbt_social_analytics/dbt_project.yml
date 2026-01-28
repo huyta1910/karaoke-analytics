@@ -16,6 +16,9 @@ clean-targets:
   - "dbt_packages"
 
 vars:
-  # BigQuery settings
   bq_project: "caramel-spot-474502-p2"
   bq_dataset: "social_analytics"
+
+
+
+
