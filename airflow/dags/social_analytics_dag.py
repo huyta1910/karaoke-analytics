@@ -55,5 +55,4 @@ generate_docs = BashOperator(
     dag=dag,
 )
 
-# Define task dependencies
 run_ingestion >> run_dbt >> run_dbt_tests >> generate_docs
