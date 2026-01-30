@@ -5,8 +5,7 @@ from bigquery_client import BigQueryClient
 from config import Config
 
 def main():
-    print("--- Starting Analytics Pipeline ---")
-    
+    print("--- Starting Analytics Pipeline ---")   
     fb = FacebookClient()
     bq = BigQueryClient()
 
