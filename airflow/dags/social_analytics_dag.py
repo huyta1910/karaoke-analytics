@@ -3,6 +3,10 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
 from airflow.utils.dates import days_ago
+import pendulum
+
+# define for UTC+7 timezone
+local_tz = pendulum.timezone("Asia/Ho_Chi_Minh")
 
 default_args = {
     'owner': 'analytics',
@@ -17,12 +21,14 @@ dag = DAG(
     'social_analytics_pipeline',
     default_args=default_args,
     description='Ingest Facebook/GA4 data and run dbt transformations',
-    schedule_interval='0 6 * * *',  
-    start_date=days_ago(1),
+    
+    schedule_interval='0 10 * * *',  
+
+    start_date=datetime(2023, 10, 1, tzinfo=local_tz),
+    
     catchup=False,
     tags=['social', 'analytics', 'dbt'],
 )
-
 PROJECT_DIR = '/opt/airflow/dags/karaoke-analytics-social'
 DBT_PROJECT_DIR = f'{PROJECT_DIR}/dbt_social_analytics'
 EL_PIPELINE_DIR = f'{PROJECT_DIR}/el_pipeline'
